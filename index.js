@@ -67,7 +67,7 @@ async function startHpoolMiner(minerName, hpoolMinerPath, currentProcess) {
     }
   }
   shell.cd(hpoolMinerPath)
-  const child = shell.exec('hpool-miner-chia', { async: true })
+  const child = shell.exec('./hpool-miner-chia', { async: true })
   let successConnect = false
   child.stdout.on('data', (data) => {
     const text = data.toString()
