@@ -48,6 +48,10 @@ async function setupBlockDevices() {
 
 async function configureHpoolMiner(hpoolMinerPath, plotPaths) {
   const configPath = `${hpoolMinerPath}/config.yaml`
+  if (!fs.existsSync(configPath)) {
+    console.log(`Config Not Found: ${configPath}. Skip configure this miner.`)
+    return false
+  }
   const config = yaml.load(fs.readFileSync(configPath, 'utf-8'))
   // If plotPaths has changed, update configPath and restart miner
   if ((config.path || []).sort().join(',') !== plotPaths.sort().join(',')) {
@@ -59,6 +63,10 @@ async function configureHpoolMiner(hpoolMinerPath, plotPaths) {
 }
 
 async function startHpoolMiner(minerName, hpoolMinerPath, binaryName, currentProcess) {
+  if (!fs.existsSync(`${hpoolMinerPath}/${binaryName}`)) {
+    console.log(`[${minerName}] Miner binary not found: ${hpoolMinerPath}/${binaryName}. Skip starting this miner.`)
+    return
+  }
   if (currentProcess) {
     try {
       currentProcess.kill('SIGINT')
