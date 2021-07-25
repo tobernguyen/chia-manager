@@ -1,0 +1,10 @@
+{
+  "name": "chia-manager",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Long Nguyen <tobernguyen@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "systeminformation": "^5.7.8"
+  }
+}
