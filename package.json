@@ -5,6 +5,8 @@
   "author": "Long Nguyen <tobernguyen@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "fs-extra": "^10.0.0",
+    "shelljs": "^0.8.4",
     "systeminformation": "^5.7.8"
   }
 }
