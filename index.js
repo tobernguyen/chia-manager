@@ -18,7 +18,7 @@ async function setupBlockDevices() {
     if (device.label.match(BLOCK_DEVICE_PATTERN)) {
       const mountPath = `/mnt/${device.label}`
       // Mount if device is not mounted
-      if (device.mount !== '') {
+      if (!device.mount) {
         fs.mkdirpSync(mountPath)
         const result = shell.exec(`mount -L ${device.label} ${mountPath}`)
         if (result.code != 0) {
@@ -26,12 +26,12 @@ async function setupBlockDevices() {
         }
       }
 
-      const files = shell.ls('-d -l', mountPath)
+      const files = shell.ls('-d', `${mountPath}/*`)
       console.log(files)
-      for(const file of files) {
-        if (file.name === 'plots') {
+      for(const filePath of files) {
+        if (filePath.endsWith('plots')) {
           ogPlotPaths.push(`${mountPath}/${file.name}`)
-        } else if (file.name === 'nplots') {
+        } else if (filePath.endsWith('nplots')) {
           nftPlotPaths.push(`${mountPath}/${file.name}`)
         }
       }
