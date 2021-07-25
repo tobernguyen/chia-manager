@@ -96,7 +96,7 @@ async function main() {
   await configureHpoolMiner(HPOOL_PP_MINER_PATH, plotPaths.nftPlotPaths)
   let hpoolPpMinerProcess = await startHpoolMiner('HPOOL_PP', HPOOL_PP_MINER_PATH)
   // Check for config change every 5 mins
-  setInterval(() => {
+  setInterval(async () => {
     // Hpool OG
     const ogConfigChanged = await configureHpoolMiner(HPOOL_OG_MINER_PATH, plotPaths.ogPlotPaths)
     if (ogConfigChanged) {
