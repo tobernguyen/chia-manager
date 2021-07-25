@@ -29,9 +29,9 @@ async function setupBlockDevices() {
       const files = shell.ls('-d', `${mountPath}/*`)
       console.log(files)
       for(const filePath of files) {
-        if (filePath.endsWith('plots')) {
+        if (filePath.endsWith('/plots')) {
           ogPlotPaths.push(filePath)
-        } else if (filePath.endsWith('nplots')) {
+        } else if (filePath.endsWith('/nplots')) {
           nftPlotPaths.push(filePath)
         }
       }
