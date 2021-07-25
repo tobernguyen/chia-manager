@@ -58,7 +58,7 @@ async function configureHpoolMiner(hpoolMinerPath, plotPaths) {
   return false
 }
 
-async function startHpoolMiner(minerName, hpoolMinerPath, currentProcess) {
+async function startHpoolMiner(minerName, hpoolMinerPath, binaryName, currentProcess) {
   if (currentProcess) {
     try {
       currentProcess.kill('SIGINT')
@@ -67,12 +67,13 @@ async function startHpoolMiner(minerName, hpoolMinerPath, currentProcess) {
     }
   }
   shell.cd(hpoolMinerPath)
-  const child = shell.exec('./hpool-miner-chia', { async: true })
+  const child = shell.exec(`./${binaryName}`, { async: true, silent: true })
   let successConnect = false
   child.stdout.on('data', (data) => {
     const text = data.toString()
     if (text.match(/connect success/)) {
       successConnect = true
+      console.log(`[${minerName}] connect success detected.`)
     }
   })
   setTimeout(() => {
@@ -91,22 +92,22 @@ async function main() {
   const plotPaths = await setupBlockDevices()
   
   await configureHpoolMiner(HPOOL_OG_MINER_PATH, plotPaths.ogPlotPaths)
-  let hpoolOgMinerProcess = await startHpoolMiner('HPOOL_OG', HPOOL_OG_MINER_PATH)
+  let hpoolOgMinerProcess = await startHpoolMiner('HPOOL_OG', HPOOL_OG_MINER_PATH, 'hpool-miner-chia')
 
   await configureHpoolMiner(HPOOL_PP_MINER_PATH, plotPaths.nftPlotPaths)
-  let hpoolPpMinerProcess = await startHpoolMiner('HPOOL_PP', HPOOL_PP_MINER_PATH)
+  let hpoolPpMinerProcess = await startHpoolMiner('HPOOL_PP', HPOOL_PP_MINER_PATH, 'hpool-miner-chia-pp')
   // Check for config change every 5 mins
   setInterval(async () => {
     // Hpool OG
     const ogConfigChanged = await configureHpoolMiner(HPOOL_OG_MINER_PATH, plotPaths.ogPlotPaths)
     if (ogConfigChanged) {
-      hpoolOgMinerProcess = await startHpoolMiner('HPOOL_OG', HPOOL_OG_MINER_PATH, hpoolOgMinerProcess)
+      hpoolOgMinerProcess = await startHpoolMiner('HPOOL_OG', HPOOL_OG_MINER_PATH, 'hpool-miner-chia', hpoolOgMinerProcess)
     }
 
     // Hpool PP
     const ppConfigChanged = await configureHpoolMiner(HPOOL_PP_MINER_PATH, plotPaths.nftPlotPaths)
     if (ppConfigChanged) {
-      hpoolPpMinerProcess = await startHpoolMiner('HPOOL_PP', HPOOL_PP_MINER_PATH, hpoolPpMinerProcess)
+      hpoolPpMinerProcess = await startHpoolMiner('HPOOL_PP', HPOOL_PP_MINER_PATH, 'hpool-miner-chia-pp', hpoolPpMinerProcess)
     }
   }, 5 * 60 * 1000)
 }
