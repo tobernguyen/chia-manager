@@ -106,6 +106,9 @@ async function main() {
   let hpoolPpMinerProcess = await startHpoolMiner('HPOOL_PP', HPOOL_PP_MINER_PATH, 'hpool-miner-chia-pp')
   // Check for config change every 5 mins
   setInterval(async () => {
+    // Refresh block devices
+    await setupBlockDevices()
+
     // Hpool OG
     const ogConfigChanged = await configureHpoolMiner(HPOOL_OG_MINER_PATH, plotPaths.ogPlotPaths)
     if (ogConfigChanged) {
