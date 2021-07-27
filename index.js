@@ -107,7 +107,7 @@ async function main() {
   // Check for config change every 5 mins
   setInterval(async () => {
     // Refresh block devices
-    await setupBlockDevices()
+    const plotPaths = await setupBlockDevices()
 
     // Hpool OG
     const ogConfigChanged = await configureHpoolMiner(HPOOL_OG_MINER_PATH, plotPaths.ogPlotPaths)
