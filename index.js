@@ -69,7 +69,7 @@ async function startHpoolMiner(minerName, hpoolMinerPath, binaryName, currentPro
   }
   if (currentProcess) {
     try {
-      currentProcess.kill('SIGINT')
+      currentProcess.kill('SIGTERM')
     } catch (e) {
       console.error('Error while killing running hpool procses:', e)
     }
