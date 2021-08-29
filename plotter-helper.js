@@ -13,9 +13,12 @@ async function update_remote_plotter_mounts() {
       .filter((d) => d.mount.match(/\/mnt\/HDDi_(\d)+/)[1] % NUMBER_OF_PLOTTERS === i)
       .sort((d) => d.available)
       .map((d) => d.mount)
-    fs.writeFileSync(`/root/plotter_${i + 1}_remote_mounts`, disksForPlotter.join(','))
+    fs.writeFileSync(`/home/lan/plotter_${i + 1}_remote_mounts`, disksForPlotter.join(','))
+    console.log(i, disksForPlotter)
   }
 }
 async function main() {
+  update_remote_plotter_mounts()
   setInterval(update_remote_plotter_mounts, 5 * 60 * 1000) // Update every 5 mins
 }
+main()
