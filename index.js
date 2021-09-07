@@ -2,6 +2,7 @@ const si = require('systeminformation')
 const fs = require('fs-extra')
 const shell = require('shelljs')
 const yaml = require('js-yaml')
+const _ = require('lodash')
 
 const BLOCK_DEVICE_PATTERN = /(HDDi_.*|\d+tb_.*)/
 const HPOOL_OG_MINER_PATH = '/root/hpool-current'
