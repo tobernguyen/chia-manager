@@ -100,13 +100,14 @@ async function startHpoolMiner(minerName, hpoolMinerPath, binaryName, currentPro
 async function configureChiaHarvester(plotPaths) {
   const configPath = CHIA_CONFIG_PATH
   if (!fs.existsSync(configPath)) {
-    console.log(`Config Not Found: ${configPath}. Skip configure this harvester.`)
+    console.log(`Config Not Found: ${configPath}. Skip configuring this harvester.`)
     return false
   }
   const config = yaml.load(fs.readFileSync(configPath, 'utf-8'))
   // If plotPaths has changed, update configPath and restart miner
   const currentPlotDirs = _.get(config, 'harvester.plot_directories', [])
   if (currentPlotDirs.sort().join(',') !== plotPaths.sort().join(',')) {
+    console.log('Chia Harvester Plot Dirs updated:', plotPaths)
     _.set(config, 'harvester.plot_directories', plotPaths)
     fs.writeFileSync(configPath, yaml.dump(config))
     return true
