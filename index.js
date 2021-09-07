@@ -6,6 +6,7 @@ const yaml = require('js-yaml')
 const BLOCK_DEVICE_PATTERN = /(HDDi_.*|\d+tb_.*)/
 const HPOOL_OG_MINER_PATH = '/root/hpool-current'
 const HPOOL_PP_MINER_PATH = '/root/hpool-pp'
+const CHIA_CONFIG_PATH = '/root/.chia/mainnet/config/config.yaml'
 
 /**
  * Auto find and mount all block devices. Discover to see if the device has
@@ -96,14 +97,48 @@ async function startHpoolMiner(minerName, hpoolMinerPath, binaryName, currentPro
   return child
 }
 
+async function configureChiaHarvester(plotPaths) {
+  const configPath = CHIA_CONFIG_PATH
+  if (!fs.existsSync(configPath)) {
+    console.log(`Config Not Found: ${configPath}. Skip configure this harvester.`)
+    return false
+  }
+  const config = yaml.load(fs.readFileSync(configPath, 'utf-8'))
+  // If plotPaths has changed, update configPath and restart miner
+  const currentPlotDirs = _.get(config, 'harvester.plot_directories', [])
+  if (currentPlotDirs.sort().join(',') !== plotPaths.sort().join(',')) {
+    _.set(config, 'harvester.plot_directories', plotPaths)
+    fs.writeFileSync(configPath, yaml.dump(config))
+    return true
+  }
+  return false
+}
+
+async function startChiaFarmer(forceRestart = false) {
+  let result
+  if (forceRestart) {
+    result = shell.exec(`systemctl restart chia-farmer`)
+  } else {
+    result = shell.exec(`systemctl start chia-farmer`)
+  }
+  if (result.code != 0) {
+    console.error(`Failed to start chia farmer service: ${result.stderr} ${result.stdout}`)
+  }
+}
+
 async function main() {
   const plotPaths = await setupBlockDevices()
   
   await configureHpoolMiner(HPOOL_OG_MINER_PATH, plotPaths.ogPlotPaths)
   let hpoolOgMinerProcess = await startHpoolMiner('HPOOL_OG', HPOOL_OG_MINER_PATH, 'hpool-miner-chia')
 
-  await configureHpoolMiner(HPOOL_PP_MINER_PATH, plotPaths.nftPlotPaths)
-  let hpoolPpMinerProcess = await startHpoolMiner('HPOOL_PP', HPOOL_PP_MINER_PATH, 'hpool-miner-chia-pp')
+  // await configureHpoolMiner(HPOOL_PP_MINER_PATH, plotPaths.nftPlotPaths)
+  // let hpoolPpMinerProcess = await startHpoolMiner('HPOOL_PP', HPOOL_PP_MINER_PATH, 'hpool-miner-chia-pp')
+
+  // Use Official Chia client for farming NFT Plots
+  await configureChiaHarvester(plotPaths.nftPlotPaths)
+  await startChiaFarmer()
+
   // Check for config change every 5 mins
   setInterval(async () => {
     // Refresh block devices
@@ -116,10 +151,17 @@ async function main() {
     }
 
     // Hpool PP
-    const ppConfigChanged = await configureHpoolMiner(HPOOL_PP_MINER_PATH, plotPaths.nftPlotPaths)
-    if (ppConfigChanged) {
-      hpoolPpMinerProcess = await startHpoolMiner('HPOOL_PP', HPOOL_PP_MINER_PATH, 'hpool-miner-chia-pp', hpoolPpMinerProcess)
+    // const ppConfigChanged = await configureHpoolMiner(HPOOL_PP_MINER_PATH, plotPaths.nftPlotPaths)
+    // if (ppConfigChanged) {
+    //   hpoolPpMinerProcess = await startHpoolMiner('HPOOL_PP', HPOOL_PP_MINER_PATH, 'hpool-miner-chia-pp', hpoolPpMinerProcess)
+    // }
+
+    // Use Official Chia client for farming NFT Plots
+    const configChanged = await configureChiaHarvester(plotPaths.nftPlotPaths)
+    if (configChanged) {
+      await startChiaFarmer(true)
     }
+
   }, 5 * 60 * 1000)
 }
 main()
