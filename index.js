@@ -142,7 +142,7 @@ async function main() {
   await startChiaService('chia-farmer')
 
   // Use Flax client for farming Flax
-  await configureChiaClient(CHIA_CONFIG_PATH, plotPaths.nftPlotPaths.concat(plotPaths.ogPlotPaths))
+  await configureChiaClient(FLAX_CONFIG_PATH, plotPaths.nftPlotPaths.concat(plotPaths.ogPlotPaths))
   await startChiaService('flax-farmer')
 
   // Check for config change every 5 mins
@@ -169,7 +169,7 @@ async function main() {
     }
 
     // Use Flax client for farming Flax
-    const flaxConfigChanged = await configureChiaClient(CHIA_CONFIG_PATH, plotPaths.nftPlotPaths.concat(plotPaths.ogPlotPaths))
+    const flaxConfigChanged = await configureChiaClient(FLAX_CONFIG_PATH, plotPaths.nftPlotPaths.concat(plotPaths.ogPlotPaths))
     if (flaxConfigChanged) {
       await startChiaService('flax-farmer', true)
     }
