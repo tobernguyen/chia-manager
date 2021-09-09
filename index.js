@@ -8,6 +8,7 @@ const BLOCK_DEVICE_PATTERN = /(HDDi_.*|\d+tb_.*)/
 const HPOOL_OG_MINER_PATH = '/root/hpool-current'
 const HPOOL_PP_MINER_PATH = '/root/hpool-pp'
 const CHIA_CONFIG_PATH = '/root/.chia/mainnet/config/config.yaml'
+const FLAX_CONFIG_PATH = '/root/.flax/mainnet/config/config.yaml'
 
 /**
  * Auto find and mount all block devices. Discover to see if the device has
@@ -98,8 +99,8 @@ async function startHpoolMiner(minerName, hpoolMinerPath, binaryName, currentPro
   return child
 }
 
-async function configureChiaHarvester(plotPaths) {
-  const configPath = CHIA_CONFIG_PATH
+async function configureChiaClient(configPath, plotPaths) {
+  const configPath
   if (!fs.existsSync(configPath)) {
     console.log(`Config Not Found: ${configPath}. Skip configuring this harvester.`)
     return false
@@ -116,15 +117,15 @@ async function configureChiaHarvester(plotPaths) {
   return false
 }
 
-async function startChiaFarmer(forceRestart = false) {
+async function startChiaService(serviceName, forceRestart = false) {
   let result
   if (forceRestart) {
-    result = shell.exec(`systemctl restart chia-farmer`)
+    result = shell.exec(`systemctl restart ${serviceName}`)
   } else {
-    result = shell.exec(`systemctl start chia-farmer`)
+    result = shell.exec(`systemctl start ${serviceName}`)
   }
   if (result.code != 0) {
-    console.error(`Failed to start chia farmer service: ${result.stderr} ${result.stdout}`)
+    console.error(`Failed to start ${serviceName} service: ${result.stderr} ${result.stdout}`)
   }
 }
 
@@ -138,8 +139,12 @@ async function main() {
   // let hpoolPpMinerProcess = await startHpoolMiner('HPOOL_PP', HPOOL_PP_MINER_PATH, 'hpool-miner-chia-pp')
 
   // Use Official Chia client for farming NFT Plots
-  await configureChiaHarvester(plotPaths.nftPlotPaths)
-  await startChiaFarmer()
+  await configureChiaClient(CHIA_CONFIG_PATH, plotPaths.nftPlotPaths)
+  await startChiaService('chia-farmer')
+
+  // Use Flax client for farming Flax
+  await configureChiaClient(CHIA_CONFIG_PATH, plotPaths.nftPlotPaths.concat(plotPaths.ogPlotPaths))
+  await startChiaService('flax-farmer')
 
   // Check for config change every 5 mins
   setInterval(async () => {
@@ -159,9 +164,15 @@ async function main() {
     // }
 
     // Use Official Chia client for farming NFT Plots
-    const configChanged = await configureChiaHarvester(plotPaths.nftPlotPaths)
+    const configChanged = await configureChiaClient(plotPaths.nftPlotPaths)
     if (configChanged) {
-      await startChiaFarmer(true)
+      await startChiaService('chia-farmer', true)
+    }
+
+    // Use Flax client for farming Flax
+    const flaxConfigChanged = await configureChiaClient(CHIA_CONFIG_PATH, plotPaths.nftPlotPaths.concat(plotPaths.ogPlotPaths))
+    if (flaxConfigChanged) {
+      await startChiaService('flax-farmer', true)
     }
 
   }, 5 * 60 * 1000)
