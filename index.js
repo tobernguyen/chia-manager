@@ -100,7 +100,6 @@ async function startHpoolMiner(minerName, hpoolMinerPath, binaryName, currentPro
 }
 
 async function configureChiaClient(configPath, plotPaths) {
-  const configPath
   if (!fs.existsSync(configPath)) {
     console.log(`Config Not Found: ${configPath}. Skip configuring this harvester.`)
     return false
