@@ -163,7 +163,7 @@ async function main() {
     // }
 
     // Use Official Chia client for farming NFT Plots
-    const configChanged = await configureChiaClient(plotPaths.nftPlotPaths)
+    const configChanged = await configureChiaClient(CHIA_CONFIG_PATH, plotPaths.nftPlotPaths)
     if (configChanged) {
       await startChiaService('chia-farmer', true)
     }
