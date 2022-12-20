@@ -11,5 +11,5 @@ for file in "$src_dir"/*.plot; do
   echo "moving file ${file}"
 
   # Move the file to the destination directory with the .tmp suffix
-  rsync --remove-source-files "$file" "$dst_dir"
+  rsync --remove-source-files --progress "$file" "$dst_dir"
 done
