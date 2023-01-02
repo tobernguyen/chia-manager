@@ -20,6 +20,9 @@ for file in "$src_dir"/*.plot; do
   # Check the available space on the file system where the destination directory is located
   available_space=$(df "$dst_dir" | tail -1 | awk '{print $4}')
 
+  # Convert the available space to bytes
+  available_space=$((available_space * 1024))
+
   # Check if the file size is smaller than the available space
   if [ "$(stat -c%s "$file")" -le "$available_space" ]; then
     # Get the base file name without the path
