@@ -17,12 +17,18 @@ for file in "$src_dir"/*.plot; do
   # Get the current destination directory
   dst_dir=${dst_dirs[$counter]}
 
-  # Get the base file name without the path
-  # filename=$(basename "$file")
-  echo "moving file ${file} to ${dst_dir}"
+  # Check the available space on the file system where the destination directory is located
+  available_space=$(df "$dst_dir" | tail -1 | awk '{print $4}')
 
-  # Move the file to the destination directory with the .tmp suffix
-  rsync --remove-source-files --progress "$file" "$dst_dir"
+  # Check if the file size is smaller than the available space
+  if [ "$(stat -c%s "$file")" -le "$available_space" ]; then
+    # Get the base file name without the path
+    # filename=$(basename "$file")
+    echo "moving file ${file} to ${dst_dir}"
+
+    # Move the file to the destination directory with the .tmp suffix
+    rsync --remove-source-files --progress "$file" "$dst_dir"
+  fi
 
   # Increment the counter
   ((counter++))
